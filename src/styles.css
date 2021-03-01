@@ -1,0 +1,18 @@
+.header {
+  margin: 1em 1em 0 1em;
+}
+
+#map {
+  height: 90vh;
+  margin: 1em;
+}
+
+.footer {
+  margin: 1em;
+  text-align: center;
+}
+
+.river-tooltip {
+  padding: 5px 10px;
+  font-size: 1.6rem;
+}
