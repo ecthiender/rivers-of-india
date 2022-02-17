@@ -4,15 +4,19 @@
 
 #map {
   height: 80vh;
-  margin: 1em;
 }
 
 .footer {
   margin: 1em;
-  text-align: center;
+  text-align: right;
 }
 
 .river-tooltip {
   padding: 5px 10px;
   font-size: 1.6rem;
+}
+
+.popup-title {
+  font-size: 2.5rem;
+  margin-bottom: 5px;
 }
