@@ -7,8 +7,8 @@ build: src
 	cp src/index.html dist/
 	cp src/index.js dist/
 	cp src/styles.css dist/
-	cp -r data/*.geojson dist/data/
-	cp -r data/*.geojson.gz dist/data/
+	$(shell cp -r data/*.geojson dist/data/)
+	$(shell cp -r data/*.geojson.gz dist/data/ || true)
 
 clean:
 	rm -rf dist/
