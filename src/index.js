@@ -52,7 +52,7 @@ async function runViz() {
 function downloadProgressBar(total, current) {
   const wrapperEl = document.getElementById('download-progress')
   const el = document.getElementById('dl-prg-content')
-  if (current == total) {
+  if (current >= total) {
     wrapperEl.style.display = 'none'
     return
   }
