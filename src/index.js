@@ -148,7 +148,7 @@ async function downloadWithProgress(url, progressCallback) {
   const reader = response.body.getReader()
 
   // Step 2: get total length
-  const contentLength = +response.headers.get('Content-Length')
+  const contentLength = +(response.headers.get('content-length') || response.headers.get('Content-Length'))
 
   // Step 3: read the data
   let receivedLength = 0
