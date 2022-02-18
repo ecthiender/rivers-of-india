@@ -61,7 +61,7 @@ function downloadProgressBar(total, current) {
   const totalSizeMB = (total / 1024 / 1024).toFixed(2) // total is in bytes
   el.innerHTML = `Downloading dataset. Size: ${totalSizeMB}MB. Downloaded: ${progressPercent}%`
   if (totalSizeMB == 0 || progressPercent == Infinity) {
-    el.style.display = 'none'
+    wrapperEl.style.display = 'none'
   }
 }
 
