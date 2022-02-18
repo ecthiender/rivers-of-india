@@ -59,7 +59,8 @@ function downloadProgressBar(total, current) {
   wrapperEl.style.display = 'block'
   const progressPercent = Math.round((current / total) * 100)
   const totalSizeMB = (total / 1024 / 1024).toFixed(2) // total is in bytes
-  el.innerHTML = `Downloading dataset. Size: ${totalSizeMB}MB. Downloaded: ${progressPercent}%`
+  // el.innerHTML = `Downloading dataset. Size: ${totalSizeMB}MB. Downloaded: ${progressPercent}%`
+  el.innerHTML = `Downloading dataset. Size: ${totalSizeMB}MB`
   if (totalSizeMB == 0 || progressPercent == Infinity) {
     wrapperEl.style.display = 'none'
   }
@@ -163,6 +164,7 @@ async function downloadWithProgress(url, progressCallback) {
     chunks.push(value)
     receivedLength += value.length
     // console.log(` [DOWNLOADING] =======>>>> Received ${receivedLength} of ${contentLength} bytes`)
+    // FIXME: figure out how to reliably calculate percentages when chunk size and content-length headers dont match
     progressCallback(contentLength, receivedLength)
   }
   // Step 4: concatenate chunks into single Uint8Array

@@ -25,3 +25,23 @@
   font-size: 2.5rem;
   margin-bottom: 5px;
 }
+
+@keyframes spinner {
+  to {transform: rotate(360deg);}
+}
+
+.spinner:before {
+  content: '';
+  box-sizing: border-box;
+  position: absolute;
+  top: 18%;
+  left: 30%;
+  width: 22px;
+  height: 22px;
+  margin-top: -10px;
+  margin-left: -10px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  border-top-color: #E67929;
+  animation: spinner .6s linear infinite;
+}
