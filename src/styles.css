@@ -2,6 +2,11 @@
   margin: 1em 1em 0 1em;
 }
 
+#download-progress {
+  display: none;
+  color: #E67929;
+}
+
 #map {
   height: 80vh;
 }

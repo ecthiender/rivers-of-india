@@ -3,7 +3,7 @@
 // Constants
 OSM_ATTRIBUTION = 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
 TOKEN = "pk.eyJ1IjoiZWN0aGllbmRlciIsImEiOiJja2xxcmNsbncxNWs3MnBxbTB2cWxzNzJwIn0.IhuSiCpVvP4K2JQQtXezuw"
-OSM_DATA_URL = "/data/india-rivers.geojson"
+OSM_DATA_URL = "/data/india-rivers.min.geojson"
 
 // the color of the water in the leaflet map
 LEAFLET_WATER_COLOR="#75cff0"
@@ -16,14 +16,13 @@ __LANGS__ = ["af","al","am","an","ar","as","az","be","bg","bn","bo","br","bs","c
 // Filtered languages
 LANGS = ["alt","ar","as","bn","en","gu","hi","kn","ml","mr","ne","or","pa","sa","sd","ta","te","ur"].map((l) => "name:" + l);
 
-function runViz() {
-
+// Main function which sets up the map, downloads the data, and renders it on the map
+async function runViz() {
   const screenWidth = window.screen.width
   const screenHeight = window.screen.height
 
   const riverLineWeight = screenWidth > 1920 ? 4 : 3
   const initCoords = [20.67085, 78.87206]
-  // FIXME: set this initial coordinates based on screen size. The below looks good for 1366x768 screens
   const initZoomLevel = screenWidth > 1920 ? 6 : 5
 
   const mapL = L.map('map').setView(initCoords, initZoomLevel);
@@ -38,18 +37,32 @@ function runViz() {
   }).addTo(mapL);
 
   // fetch the rivers data and initialize it on the map
-  fetch(OSM_DATA_URL)
-  .then(res => res.json())
-  .then(data => {
-    // console.log('got response', data);
-    addRivers(mapL, data)
-  })
-  .catch(error => {
+  let res
+  try {
+    res = await downloadWithProgress(OSM_DATA_URL, downloadProgressBar)
+  } catch (error) {
     console.log('error fetching data', error);
     alert('Some error occurred while fetching data from the server. Please try again in some time.')
-  });
+  }
+  const data = JSON.parse(res)
+  addRivers(mapL, data)
 }
 
+// shows progress of the download of the dataset
+function downloadProgressBar(total, current) {
+  const wrapperEl = document.getElementById('download-progress')
+  const el = document.getElementById('dl-prg-content')
+  if (current == total) {
+    wrapperEl.style.display = 'none'
+    return
+  }
+  wrapperEl.style.display = 'block'
+  const progressPercent = Math.round((current / total) * 100)
+  const totalSizeMB = (total / 1024 / 1024).toFixed(2) // total is in bytes
+  el.innerHTML = `Downloading dataset. Size: ${totalSizeMB}MB. Downloaded: ${progressPercent}%`
+}
+
+// adds the dataset to the map as layer
 function addRivers(mapL, data) {
   const riverStyles = {
     color: RIVER_COLOR,
@@ -63,6 +76,7 @@ function addRivers(mapL, data) {
   }).addTo(mapL)
 }
 
+// sets up a popup for each river feature
 function riverDetailsPopup(feature, layer) {
   // set on hover styles
   layer.on('mouseover', () => layer.setStyle({color: RIVER_COLOR_ALT}));
@@ -76,6 +90,7 @@ function riverDetailsPopup(feature, layer) {
   layer.bindPopup(makeDetails(feature.properties));
 }
 
+// helper function to create the copy in the popup
 function makeDetails(props) {
   let html = `<div class="popup-title"> ${getRiverName(props)} </div>`;
   const availableLangs = LANGS.filter((lang) => props.hasOwnProperty(lang));
@@ -119,5 +134,44 @@ function getRiverName(props) {
 }
 
 window.onload = runViz;
+
+/*----------------------------*/
+
+/* Various helper/utility/internal functions */
+
+async function downloadWithProgress(url, progressCallback) {
+  // Step 1: start the fetch and obtain a reader
+  const response = await fetch(url)
+  const reader = response.body.getReader()
+
+  // Step 2: get total length
+  const contentLength = +response.headers.get('Content-Length')
+
+  // Step 3: read the data
+  let receivedLength = 0
+  // initial call to the progress stepper function with 0 receivedLength
+  progressCallback(contentLength, receivedLength)
+  let chunks = []
+  while(true) {
+    const {done, value} = await reader.read()
+    if (done) {
+      break
+    }
+    chunks.push(value)
+    receivedLength += value.length
+    // console.log(` [DOWNLOADING] =======>>>> Received ${receivedLength} of ${contentLength} bytes`)
+    progressCallback(contentLength, receivedLength)
+  }
+  // Step 4: concatenate chunks into single Uint8Array
+  let chunksAll = new Uint8Array(receivedLength) // (4.1)
+  let position = 0;
+  for(let chunk of chunks) {
+    chunksAll.set(chunk, position) // (4.2)
+    position += chunk.length
+  }
+  // Step 5: decode into a string and return
+  const result = new TextDecoder('utf-8').decode(chunksAll)
+  return result
+}
 
 })()
