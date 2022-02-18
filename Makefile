@@ -7,6 +7,7 @@ build: src
 	cp src/index.html dist/
 	cp src/index.js dist/
 	cp src/styles.css dist/
+	cp src/favicon.ico dist/
 	cp -r data/india-rivers.min.geojson dist/data/
 
 clean:

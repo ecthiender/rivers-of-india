@@ -60,6 +60,9 @@ function downloadProgressBar(total, current) {
   const progressPercent = Math.round((current / total) * 100)
   const totalSizeMB = (total / 1024 / 1024).toFixed(2) // total is in bytes
   el.innerHTML = `Downloading dataset. Size: ${totalSizeMB}MB. Downloaded: ${progressPercent}%`
+  if (totalSizeMB == 0 || progressPercent == Infinity) {
+    el.style.display = 'none'
+  }
 }
 
 // adds the dataset to the map as layer
