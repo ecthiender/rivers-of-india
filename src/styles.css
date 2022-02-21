@@ -25,8 +25,18 @@
   margin-bottom: 5px;
 }
 
+/* Leaflet map doesn't inherit styles from the body. hence we have a custom
+   class to add to leaflet maps explicitly */
+.leaflet-override-custom {
+  color: #606c76;
+  font-family: 'Roboto';
+  font-weight: normal;
+  letter-spacing: -.01rem;
+  line-height: 1.6;
+  margin-left: 3px;
+}
 
-/* For the loading animation */
+/* For the loading animation - the loading animation is pure CSS */
 .lds-facebook {
   display: inline-block;
   position: relative;

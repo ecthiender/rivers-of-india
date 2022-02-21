@@ -1,4 +1,5 @@
 (function() {
+// Codenamed: nadiviz; nadi.anonray.in / nadiviz.anonray.in
 
 // Constants
 OSM_ATTRIBUTION = 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>'
@@ -7,7 +8,8 @@ OSM_DATA_URL = "/data/india-rivers.min.geojson"
 
 // the color of the water in the leaflet map
 LEAFLET_WATER_COLOR="#75cff0"
-RIVER_COLOR="#6ABBD9"
+// RIVER_COLOR="#6ABBD9"
+RIVER_COLOR="#75cff0"
 RIVER_COLOR_ALT="#E67929"
 
 /* Original list of all languages the data set has
@@ -25,18 +27,23 @@ async function runViz() {
   const initCoords = [20.67085, 78.87206]
   const initZoomLevel = screenWidth > 1920 ? 6 : 5
 
-  const mapL = L.map('map').setView(initCoords, initZoomLevel);
+  const satelliteView = newTileLayer('mapbox/satellite-streets-v11')
+  const streetView = newTileLayer('mapbox/streets-v11')
 
-  L.tileLayer("https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={token}", {
-    attribution: OSM_ATTRIBUTION,
-    maxZoom: 18,
-    id: "mapbox/streets-v11",
-    tileSize: 512,
-    zoomOffset: -1,
-    token: TOKEN
-  }).addTo(mapL);
+  const mapL = L.map('map', {
+    center: initCoords,
+    zoom: initZoomLevel,
+    layers: [satelliteView, streetView]
+  })
 
-  // fetch the rivers data and initialize it on the map
+  const baseMaps = {
+    "<span class='leaflet-override-custom'>Street View</span>": streetView,
+    "<span class='leaflet-override-custom'> Satellite View </span>": satelliteView,
+  }
+
+  L.control.layers(baseMaps).addTo(mapL)
+
+  // load data and initialize it on the map
   let res
   try {
     res = await downloadWithProgress(OSM_DATA_URL, downloadProgressBar)
@@ -71,7 +78,7 @@ function addRivers(mapL, data) {
   const riverStyles = {
     color: RIVER_COLOR,
     weight: 4,
-    opacity: 1
+    opacity: 0.9
   }
 
   L.geoJSON(data, {
@@ -142,6 +149,22 @@ window.onload = runViz;
 /*----------------------------*/
 
 /* Various helper/utility/internal functions */
+
+// function wrrapping the mapbox API and leaflet tilelayer API.
+//  args: map box tileset id
+// returns: leaflet tile layer
+function newTileLayer(tilesetId) {
+  // uses the static tiles API - https://docs.mapbox.com/api/maps/static-tiles
+  const mapboxUrl = "https://api.mapbox.com/styles/v1/{tileset_id}/tiles/{z}/{x}/{y}?access_token={token}"
+  const mapboxDefs = {
+    attribution: OSM_ATTRIBUTION,
+    maxZoom: 18,
+    tileSize: 512,
+    zoomOffset: -1,
+    token: TOKEN
+  }
+  return L.tileLayer(mapboxUrl, {...mapboxDefs, tileset_id: tilesetId})
+}
 
 async function downloadWithProgress(url, progressCallback) {
   // Step 1: start the fetch and obtain a reader
