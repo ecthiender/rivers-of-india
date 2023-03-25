@@ -44,15 +44,52 @@ async function runViz() {
   L.control.layers(baseMaps).addTo(mapL)
 
   // load data and initialize it on the map
-  let res
+  let data
   try {
-    res = await downloadWithProgress(OSM_DATA_URL, downloadProgressBar)
+    data = await loadData()
   } catch (error) {
     console.log('error fetching data', error);
     alert('Some error occurred while fetching data from the server. Please try again in some time.')
   }
-  const data = JSON.parse(res)
   addRivers(mapL, data)
+}
+
+async function loadData() {
+  console.log('loadData')
+  const storeKey = `nadiviz:${OSM_DATA_URL}`
+  console.log('LS:getItem')
+  const resp = localStorage.getItem(storeKey)
+  console.log('LS:getItem:DONE')
+  // if data not found in localstorage
+  if (!resp) {
+    console.log('loadData: not found data in LS')
+    let res
+    try {
+      console.log('loadData: downloading from ' + OSM_DATA_URL)
+      res = await downloadWithProgress(OSM_DATA_URL, downloadProgressBar)
+      console.log('loadData: finished downloading')
+    } catch (error) {
+      console.log('loadData: error fetching data from server ', error);
+      throw error
+    }
+    console.log('loadData: GOT DATA > PARSING JSON')
+    const data = JSON.parse(res)
+    console.log('LS:setItem')
+    try {
+      localStorage.setItem(storeKey, JSON.stringify(data))
+      console.log('LS:setItem:DONE')
+    } catch (error) {
+      console.log('loadData: error saving data to localstorage ')
+      console.log(error)
+      throw error
+    } finally {
+      return data
+    }
+  }
+
+  console.log('loadData: DATA already found!!! Returning promptly')
+  const data = JSON.parse(resp)
+  return data
 }
 
 // shows progress of the download of the dataset
@@ -103,7 +140,7 @@ function riverDetailsPopup(feature, layer) {
 
 // helper function to create the copy in the popup
 function makeDetails(props) {
-  let html = `<div class="popup-title"> ${getRiverName(props)} </div>`;
+  let html = `<div class="popup-content"> <div class="popup-title"> ${getRiverName(props)} </div>`;
   const availableLangs = LANGS.filter((lang) => props.hasOwnProperty(lang));
   const otherNames = availableLangs.map((lang) => props[lang]);
   html += makeDetail('Source', props["source"] || props['source:name:uk'])
@@ -114,6 +151,7 @@ function makeDetails(props) {
   html += makeDetail('Width', props["width"])
   html += makeDetail('Other names', otherNames.join(', '))
   html += makeWikiLink(props["wikipedia"])
+  html += "</div>";
   return html
 }
 
@@ -121,7 +159,7 @@ function makeDetail(label, value) {
   if (!value) {
     return ''
   }
-  return `<div><b>${label}</b>: ${value} </div>`
+  return `<div class="popup-list-item"><b>${label}</b>: ${value} </div>`
 }
 
 function makeWikiLink(wiki) {
@@ -134,7 +172,7 @@ function makeWikiLink(wiki) {
 
 // try to name of the river from various possible attributes
 function getRiverName(props) {
-  const validAttrs = ["name", "name:en", "alt_name", "name:alt"];
+  const validAttrs = ["name:en", "name", "alt_name", "name:alt"];
   for (var i = 0; i < validAttrs.length; i++) {
     let p = validAttrs[i];
     if (props.hasOwnProperty(p)) {
