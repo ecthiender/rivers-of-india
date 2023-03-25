@@ -21,8 +21,16 @@
 }
 
 .popup-title {
-  font-size: 2.5rem;
+  font-size: 2rem;
   margin-bottom: 5px;
+}
+
+.popup-content {
+  font-size: 1.3rem;
+}
+
+.popup-list-item {
+  margin: 1px;
 }
 
 /* Leaflet map doesn't inherit styles from the body. hence we have a custom
@@ -34,6 +42,7 @@
   letter-spacing: -.01rem;
   line-height: 1.6;
   margin-left: 3px;
+  font-size: 1.4rem;
 }
 
 /* For the loading animation - the loading animation is pure CSS */
